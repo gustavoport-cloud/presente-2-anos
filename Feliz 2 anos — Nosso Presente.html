@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)file:///C:/Users/glira/Downloads/present.html -->
+<html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Feliz 2 anos — Nosso Presente</title>
+  <link href="./Feliz 2 anos — Nosso Presente_files/css2" rel="stylesheet">
+  <meta name="description" content="Presente interativo para comemorar 2 anos juntos — incl. mini-jogo, fotos e música de fundo.">
+  <style>
+    :root{
+      --bg-1:#0f1022; --bg-2:#2a143d; --card:#100a18; --accent:#ff5c8a; --accent2:#c0399b; --muted:#bfb7c6; --text:#fff2f7;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;}
+    body{margin:0;font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;color:var(--text);background:linear-gradient(180deg,var(--bg-1),var(--bg-2));-webkit-font-smoothing:antialiased;}
+
+    /* layout */
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 18px 80px}
+
+    /* Intro modal */
+    .intro{position:fixed;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,rgba(11,6,32,.93),rgba(34,13,49,.93));z-index:100;padding:18px}
+    .card-intro{width:min(980px,96%);background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));border-radius:16px;padding:28px;border:1px solid rgba(255,255,255,.05);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+    .logo{font-family:'Playfair Display',serif;font-size:2.4rem;margin:0;color:var(--text)}
+    .subtitle{color:var(--muted);margin-top:6px}
+    .enter-btn{margin-top:18px;padding:12px 18px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;border-radius:12px;font-weight:700;cursor:pointer;color:#fff;box-shadow:0 10px 30px rgba(197,66,135,.18)}
+
+    /* decorative hearts layer */
+    .hearts{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:10}
+    .heart{position:absolute;font-size:22px;opacity:.12;filter:drop-shadow(0 6px 22px rgba(197,66,135,.12));animation:rise linear infinite}
+    @keyframes rise{from{transform:translateY(120vh) rotate(0deg)} to{transform:translateY(-40vh) rotate(360deg)}}
+    @media (prefers-reduced-motion: reduce){ .heart{animation:none} }
+
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .brand{display:flex;gap:14px;align-items:center}
+    .brand .logo-small{font-family:'Playfair Display',serif;font-size:1.2rem}
+    .top-controls{display:flex;gap:8px;align-items:center}
+
+    /* main grid */
+    .main-grid{display:grid;grid-template-columns:1fr;gap:18px}
+    @media(min-width:940px){ .main-grid{grid-template-columns:1fr 420px} }
+
+    /* card */
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));border-radius:14px;padding:16px;border:1px solid rgba(255,255,255,.05)}
+    h1{font-family:'Playfair Display',serif;margin:0;font-size:1.9rem}
+    .meta{color:var(--muted);margin-top:6px}
+
+    /* photos */
+    .photos{display:flex;gap:12px;margin-top:12px}
+    .photo-slot{flex:1;position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.04);background:linear-gradient(180deg, rgba(0,0,0,.15), rgba(255,255,255,.02));min-height:220px;display:grid;place-items:center}
+    .photo-slot img{width:100%;height:100%;object-fit:cover;display:block}
+    .photo-actions{position:absolute;left:10px;bottom:10px;display:flex;gap:8px}
+    .btn-ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.06);padding:8px 10px;border-radius:10px;color:var(--text);font-weight:600;cursor:pointer}
+    .photo-placeholder{color:var(--muted);text-align:center;padding:20px}
+
+    /* declaration */
+    .declaration{font-size:1.03rem;line-height:1.7;color:var(--text);margin-top:12px}
+
+    /* timeline chips */
+    .timeline{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .chip{background:rgba(255,255,255,.03);padding:8px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.04);font-weight:600;color:var(--muted)}
+
+    /* game area */
+    .game-wrap{margin-top:12px;display:grid;gap:10px}
+    canvas{width:100%;height:auto;border-radius:10px;border:1px solid rgba(255,255,255,.05);background:linear-gradient(180deg,#0b0620,#0d0826)}
+    .controls{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.95rem;gap:.6rem;flex-wrap:wrap}
+
+    .control-row{display:flex;gap:8px;align-items:center}
+    .small{font-size:.9rem;color:var(--muted)}
+
+    .hud{display:none}
+    @media (max-width:640px){ .hud{display:flex;position:fixed;left:12px;right:12px;bottom:18px;justify-content:space-between;z-index:90;pointer-events:none} .hud .pad{pointer-events:auto} }
+
+    /* modal win */
+    .modal{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.6);z-index:120;padding:14px}
+    .modal.active{display:grid}
+    .modal-card{max-width:720px;background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));padding:22px;border-radius:14px;text-align:center;border:1px solid rgba(255,255,255,.06)}
+    .type{font-family:'Playfair Display',serif;font-size:1.25rem;min-height:2.4rem;margin-top:8px}
+
+    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:.9rem}
+
+    /* utils */
+    .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .row{display:flex;gap:8px;align-items:center}
+
+    /* buttons */
+    .primary{background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;padding:10px 14px;border-radius:12px;color:#fff;font-weight:700;cursor:pointer}
+    .pill{background:rgba(255,255,255,.04);padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.04)}
+
+  </style>
+</head>
+<body>
+  <div class="hearts" id="hearts" aria-hidden="true"><div class="heart" style="left: 38.1586vw; font-size: 23.8981px; animation-duration: 13.7012s; opacity: 0.126403; top: 77.4081vh;">❤</div><div class="heart" style="left: 21.4932vw; font-size: 28.3487px; animation-duration: 14.6561s; opacity: 0.148376; top: 78.3332vh;">💖</div><div class="heart" style="left: 79.0378vw; font-size: 34.0826px; animation-duration: 9.8077s; opacity: 0.131829; top: 102.252vh;">💗</div><div class="heart" style="left: 41.9266vw; font-size: 29.2265px; animation-duration: 11.7689s; opacity: 0.0891755; top: 73.0118vh;">💘</div><div class="heart" style="left: 6.7079vw; font-size: 38.3961px; animation-duration: 20.7697s; opacity: 0.0714194; top: 94.4807vh;">💝</div><div class="heart" style="left: 73.1363vw; font-size: 36.6322px; animation-duration: 12.4716s; opacity: 0.0585389; top: 81.4282vh;">❤</div><div class="heart" style="left: 30.9829vw; font-size: 29.452px; animation-duration: 20.7853s; opacity: 0.09113; top: 72.9597vh;">💖</div><div class="heart" style="left: 56.4546vw; font-size: 17.2337px; animation-duration: 10.5914s; opacity: 0.0974262; top: 70.704vh;">💗</div><div class="heart" style="left: 47.0642vw; font-size: 30.3454px; animation-duration: 15.6996s; opacity: 0.136057; top: 88.3337vh;">💘</div><div class="heart" style="left: 91.9381vw; font-size: 31.4759px; animation-duration: 21.8806s; opacity: 0.162737; top: 101.345vh;">💝</div><div class="heart" style="left: 76.5881vw; font-size: 20.1024px; animation-duration: 19.3872s; opacity: 0.140892; top: 94.2332vh;">❤</div><div class="heart" style="left: 33.495vw; font-size: 30.3484px; animation-duration: 14.4859s; opacity: 0.138381; top: 77.4661vh;">💖</div><div class="heart" style="left: 61.2201vw; font-size: 37.4953px; animation-duration: 11.0245s; opacity: 0.11619; top: 97.7701vh;">💗</div><div class="heart" style="left: 82.537vw; font-size: 28.774px; animation-duration: 14.6633s; opacity: 0.111758; top: 101.386vh;">💘</div><div class="heart" style="left: 51.7919vw; font-size: 30.8886px; animation-duration: 18.7777s; opacity: 0.0487507; top: 83.1991vh;">💝</div><div class="heart" style="left: 80.7063vw; font-size: 37.6775px; animation-duration: 19.97s; opacity: 0.0422265; top: 109.185vh;">❤</div><div class="heart" style="left: 68.4617vw; font-size: 37.3187px; animation-duration: 13.6344s; opacity: 0.119318; top: 99.8775vh;">💖</div><div class="heart" style="left: 50.4827vw; font-size: 19.1651px; animation-duration: 16.3938s; opacity: 0.0589094; top: 101.552vh;">💗</div><div class="heart" style="left: 83.9783vw; font-size: 13.7606px; animation-duration: 14.3933s; opacity: 0.135605; top: 100.72vh;">💘</div><div class="heart" style="left: 44.3049vw; font-size: 13.1467px; animation-duration: 15.047s; opacity: 0.098751; top: 103.68vh;">💝</div><div class="heart" style="left: 57.194vw; font-size: 31.4968px; animation-duration: 13.967s; opacity: 0.0785908; top: 103.197vh;">❤</div><div class="heart" style="left: 58.7758vw; font-size: 38.9557px; animation-duration: 11.677s; opacity: 0.102166; top: 94.172vh;">💖</div></div>
+
+  <!-- Intro -->
+  <div class="intro" id="intro" role="dialog" aria-modal="true" style="display: none;">
+    <div class="card-intro">
+      <div class="logo">Feliz 2 anos 💖</div>
+      <div class="subtitle">08/09 — Um presente especial só pra nós dois</div>
+      <div style="margin-top:10px;color:var(--muted)">Toque em entrar e comece a surpresa ✨</div>
+      <div style="margin-top:18px;display:flex;gap:10px;justify-content:center">
+        <button class="enter-btn" id="enterBtn">Entrar</button>
+        <button class="btn-ghost" id="enterNoMusic">Entrar sem música</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo-small">Feliz 2 anos</div>
+        <div class="small" style="color:var(--muted)">08/09 — Nosso presente</div>
+      </div>
+
+      <div class="top-controls">
+        <label class="pill" title="Alterar música">
+          <input id="musicFile" type="file" accept="audio/*" style="display:none">
+          <button class="btn-ghost" id="chooseMusic">Trocar música</button>
+        </label>
+        <button class="pill" id="toggleMusic" aria-pressed="true">🔈 Música: On</button>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <section class="card" aria-labelledby="mainTitle">
+        <h1 id="mainTitle">Pra você, que é meu lar</h1>
+        <div class="meta">2 anos juntos · cada dia mais nosso</div>
+
+        <div class="photos" aria-label="Fotos nossas">
+          <div class="photo-slot" id="slot1"><img src="nico.jpg" alt="Foto nossa 1"><div class="photo-actions"><button class="btn-ghost" data-slot="1" id="upload1">📁 Trocar</button><button class="btn-ghost" data-slot="1" id="remove1">✖</button></div></div>
+          <div class="photo-slot" id="slot2"><img src="gud.jpg" alt="Foto nossa 2"><div class="photo-actions"><button class="btn-ghost" data-slot="2" id="upload2">📁 Trocar</button><button class="btn-ghost" data-slot="2" id="remove2">✖</button></div></div>
+        </div>
+
+        <p class="declaration" id="declaration">Amor, nesses 2 anos você transformou minha vida. Obrigado por cada abraço, cada riso e por ser minha paz. Eu quero construir infinitos capítulos com você.
+Como não temos muitas fotos recentes juntos, coloquei essas 2 aleatórias.
+Mas é isso: amo você, amo seu jeito, amo cada detalhe seu, menos quando você peida, que parece muito a bomba de Hiroshima e Nagasaki; inclusive acho que, quando jogaram essas duas bombas, eles tinham te pedido pra peidar dentro, por isso destruíram a cidade.
+Brincadeiras à parte, mas obrigado por estar na minha vida e me fazer de fato feliz. Já não me vejo sem você e você está convidada para passar o resto da sua vida comigo, não só 2 anos, mas 100, 200, 300, 400 anos ou toda a eternidade, você é minha alma gêmea.
+Escolhi montar este site pra deixar algo hospedado nessa internet e esclarecer o quanto amo você e sempre que estiver triste com qualquer situação, entra nesse site e joga o joguinho e veja também o quanto eu te amo e que tudo que está passando é só uma fase, como de muitas, e tudo passa, menos meu amor por você, é claro.
+EU TE AMOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO.</p>
+
+        <div class="timeline" aria-label="Nossa linha do tempo">
+          <div class="chip">💬 Você é meu sorriso favorito</div>
+          <div class="chip">📸 Você é Inesquecível </div>
+          <div class="chip">✈️ Você é meu futuro </div>
+          <div class="chip">Teu sorriso ilumina meu chão,
+                            teu abraço é meu coração.
+                            Se a vida é estrada sem fim,
+                            quero andar nela só junto a ti.</div> 
+
+        </div>
+
+        <footer style="margin-top:12px;color:var(--muted)">Dica: clique nas fotos para trocar por imagens do seu celular/PC.</footer>
+      </section>
+
+      <aside class="card" aria-labelledby="gameTitle">
+        <h3 id="gameTitle" style="margin:0 0 .6rem 0">Mini‑jogo: Corre pro Presente 🎮</h3>
+        <div class="game-wrap">
+          <canvas id="gameCanvas" width="386" height="145" aria-label="Mini jogo plataforma" style="width: 100%; height: 145px;"></canvas>
+          <div class="controls">
+            <div class="control-row">❤️ Corações: <strong style="margin-left:8px" id="count">0</strong>/<span id="total">6</span></div>
+            <div class="control-row small">Controles: ← → · ↑ ou Espaço · Toque no HUD</div>
+          </div>
+
+          <div style="display:flex;gap:.5rem;margin-top:.6rem;justify-content:center">
+            <button class="primary" id="resetBtn">Reiniciar</button>
+            <button class="pill" id="pauseBtn" aria-pressed="false">⏸️ Pausar</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;color:var(--muted);font-size:.95rem">Toque em "Dizer eu te amo" quando ganhar para ouvir a declaração.</div>
+      </aside>
+    </main>
+
+    <footer style="margin-top:18px;text-align:center;color:var(--muted)">Feito com ❤️ — 08/09/2025</footer>
+  </div>
+
+  <!-- win modal -->
+  <div class="modal" id="winModal" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="modal-card">
+      <h2 id="winTitle">Você chegou ao presente! 🎁</h2>
+      <p style="color:var(--muted);margin-top:8px">Pegue todos os corações e encoste na bandeira para desbloquear.</p>
+      <div class="type" id="typeMsg"></div>
+      <div style="margin-top:12px;display:flex;gap:10px;justify-content:center">
+        <button class="primary" id="sayLove">Dizer: "Eu te amo"</button>
+        <button class="pill" id="closeWin">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud" aria-hidden="false" aria-label="Controles de toque">
+    <div class="pad">
+      <button class="pill" id="btnLeft">←</button>
+      <button class="pill" id="btnRight">→</button>
+    </div>
+    <div class="pad">
+      <button class="pill" id="btnJump">PULAR</button>
+    </div>
+  </div>
+
+  <span class="sr" id="srAnnounce" aria-live="polite"></span>
+
+  <!-- audio element (can be swapped by user) -->
+  <audio id="bgAudio" loop="" crossorigin="anonymous">
+    <!-- default: a short gentle instrumental (change/upload via UI) -->
+    <source src="lonely-day.mp.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // ---------------- Decorative hearts ----------------
+    (function makeHearts(){
+      const wrap = document.getElementById('hearts');
+      const symbols = ['❤','💖','💗','💘','💝'];
+      for(let i=0;i<22;i++) create(i);
+      function create(i){
+        const el = document.createElement('div'); el.className='heart'; el.textContent = symbols[i%symbols.length];
+        el.style.left = Math.random()*100 + 'vw';
+        el.style.fontSize = (12 + Math.random()*28) + 'px';
+        el.style.animationDuration = (8 + Math.random()*14) + 's';
+        el.style.opacity = (0.04 + Math.random()*0.14);
+        el.style.top = (70 + Math.random()*40) + 'vh';
+        wrap.appendChild(el);
+      }
+    })();
+
+    // ---------------- Intro behaviour & music start ----------------
+    const intro = document.getElementById('intro');
+    const enterBtn = document.getElementById('enterBtn');
+    const enterNoMusic = document.getElementById('enterNoMusic');
+    const bgAudio = document.getElementById('bgAudio');
+    const toggleMusic = document.getElementById('toggleMusic');
+    const chooseMusic = document.getElementById('chooseMusic');
+    const musicFile = document.getElementById('musicFile');
+
+    let musicOn = true;
+    toggleMusic.addEventListener('click', ()=>{
+      musicOn = !musicOn; updateMusicUI();
+      if(musicOn) tryStartAudio(); else bgAudio.pause();
+    });
+
+    function updateMusicUI(){ toggleMusic.textContent = (musicOn? '🔈 Música: On' : '🔇 Música: Off'); toggleMusic.setAttribute('aria-pressed', musicOn? 'true':'false'); }
+    updateMusicUI();
+
+    enterBtn.addEventListener('click', ()=>{ intro.style.display='none'; tryStartAudio(); });
+    enterNoMusic.addEventListener('click', ()=>{ intro.style.display='none'; musicOn=false; updateMusicUI(); });
+
+    // allow user to pick an mp3 to replace bg music
+    chooseMusic.addEventListener('click', ()=> musicFile.click());
+    musicFile.addEventListener('change', (e)=>{
+      const f = e.target.files[0];
+      if(!f) return;
+      const url = URL.createObjectURL(f);
+      bgAudio.src = url; // replace source
+      bgAudio.load();
+      musicOn = true; updateMusicUI();
+      tryStartAudio();
+    });
+
+    function tryStartAudio(){
+      // browsers require gesture; safe guard this is called after user interacts
+      try{
+        if(!musicOn) return;
+        const playPromise = bgAudio.play();
+        if(playPromise && playPromise.catch){ playPromise.catch(()=>{ /* autoplay blocked — will play on next interaction */ }); }
+      }catch(e){}
+    }
+
+    // ---------------- Photos upload & replace ----------------
+    function setupPhoto(slot){
+      const wrap = document.getElementById('slot'+slot);
+      const uploadBtn = document.getElementById('upload'+slot);
+      const removeBtn = document.getElementById('remove'+slot);
+
+      const input = document.createElement('input'); input.type='file'; input.accept='image/*'; input.style.display='none';
+      document.body.appendChild(input);
+
+      function setImage(file){
+        if(!file) return;
+        const url = URL.createObjectURL(file);
+        renderImage(url);
+      }
+
+      function renderImage(src){
+        wrap.innerHTML = '';
+        const img = document.createElement('img'); img.src = src; img.alt = 'Foto nossa '+slot;
+        wrap.appendChild(img);
+        const actions = document.createElement('div'); actions.className='photo-actions';
+        actions.innerHTML = `<button class="btn-ghost" data-slot="${slot}" id="upload${slot}">📁 Trocar</button><button class="btn-ghost" data-slot="${slot}" id="remove${slot}">✖</button>`;
+        wrap.appendChild(actions);
+        // re-hook events
+        actions.querySelector(`#upload${slot}`).addEventListener('click', ()=> input.click());
+        actions.querySelector(`#remove${slot}`).addEventListener('click', ()=>{ wrap.innerHTML = '<div class="photo-placeholder">Toque para adicionar a foto</div><div class="photo-actions"><button class="btn-ghost" data-slot="'+slot+'" id="upload'+slot+'">📁 Trocar</button><button class="btn-ghost" data-slot="'+slot+'" id="remove'+slot+'">✖</button></div>'; setupPhoto(slot); });
+        img.addEventListener('click', ()=> input.click());
+      }
+
+      // initial hooks for placeholder
+      wrap.querySelector('.photo-actions')?.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=> input.click()));
+      wrap.addEventListener('click', ()=> input.click());
+
+      input.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(!f) return; setImage(f); });
+    }
+
+    setupPhoto(1); setupPhoto(2);
+
+    // ---------------- Accessible announce ----------------
+    function announce(msg){ const sr = document.getElementById('srAnnounce'); sr.textContent = msg; }
+
+    // ---------------- Game code (polished & small) ----------------
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeForDPR(){
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      const rectW = 960; const rectH = 360;
+      canvas.style.width = '100%';
+      const cssW = Math.min(960, document.querySelector('.game-wrap').clientWidth);
+      const cssH = Math.round(rectH * (cssW / rectW));
+      canvas.style.height = cssH + 'px';
+      canvas.width = Math.floor(cssW * dpr);
+      canvas.height = Math.floor(cssH * dpr);
+      gameScale = canvas.width / rectW;
+    }
+    let gameScale = 1; window.addEventListener('resize', resizeForDPR); resizeForDPR();
+
+    const worldWidth = 2400;
+
+    const platforms = [
+      {x:0,y:320,w:700,h:40}, {x:720,y:270,w:140,h:18}, {x:900,y:230,w:160,h:18}, {x:1100,y:190,w:140,h:18}, {x:1300,y:320,w:700,h:40}, {x:1560,y:260,w:120,h:18}, {x:1740,y:220,w:110,h:18}, {x:1920,y:180,w:100,h:18}, {x:2100,y:320,w:300,h:40}
+    ];
+
+    const hearts = [
+      {x:680,y:240,r:12,taken:false}, {x:960,y:200,r:12,taken:false}, {x:1120,y:160,r:12,taken:false}, {x:1600,y:220,r:12,taken:false}, {x:1880,y:160,r:12,taken:false}, {x:2040,y:280,r:12,taken:false}
+    ];
+    document.getElementById('total').textContent = hearts.length;
+
+    const flag = {x:2320,y:240,w:16,h:96};
+
+    const player = {x:40,y:260,w:36,h:44,vx:0,vy:0,onGround:false,anim:0};
+
+    const GRAV = 0.6; const MAXSPEED = 4.6; const JUMP = 11.8;
+
+    const keys = {}; addEventListener('keydown', e=>{ keys[e.key]=true; if([' ','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault(); }); addEventListener('keyup', e=>{ keys[e.key]=false; });
+
+    // touch buttons
+    const touchState = {left:false,right:false,jump:false};
+    function bindHold(el, key){
+      const start = (e)=>{ e.preventDefault(); touchState[key]=true; el.classList.add('active'); };
+      const end = (e)=>{ e.preventDefault(); touchState[key]=false; el.classList.remove('active'); };
+      el.addEventListener('touchstart', start, {passive:false}); el.addEventListener('touchend', end, {passive:false}); el.addEventListener('mousedown', start); el.addEventListener('mouseup', end); el.addEventListener('mouseleave', end);
+    }
+    bindHold(document.getElementById('btnLeft'),'left'); bindHold(document.getElementById('btnRight'),'right'); bindHold(document.getElementById('btnJump'),'jump');
+
+    function rect(ax,ay,aw,ah, bx,by,bw,bh){ return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by; }
+
+    let paused = false;
+    const pauseBtn = document.getElementById('pauseBtn');
+    pauseBtn.addEventListener('click', ()=>{ paused=!paused; pauseBtn.textContent = paused? '▶️ Retomar':'⏸️ Pausar'; pauseBtn.setAttribute('aria-pressed', paused? 'true':'false'); if(!paused) loop(); });
+
+    // simple audio cues using WebAudio (created on gesture)
+    const AudioCtx = window.AudioContext || window.webkitAudioContext; let audioCtx=null;
+    function ensureAudioCtx(){ if(!audioCtx) try{ audioCtx = new AudioCtx(); }catch(e){} }
+    function playTone(freq, time=0.12, type='sine', vol=0.08){ if(!musicOn) return; ensureAudioCtx(); if(!audioCtx) return; const o=audioCtx.createOscillator(); const g=audioCtx.createGain(); o.type=type; o.frequency.value=freq; g.gain.value=vol; o.connect(g); g.connect(audioCtx.destination); o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + time); o.stop(audioCtx.currentTime + time + 0.02); }
+
+    function update(){
+      const left = keys['ArrowLeft'] || keys['a'] || keys['A'] || touchState.left;
+      const right = keys['ArrowRight'] || keys['d'] || keys['D'] || touchState.right;
+      const upKey = keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' '];
+      const up = upKey || touchState.jump;
+
+      if(left) player.vx -= 0.45; if(right) player.vx += 0.45;
+      player.vx = Math.max(-MAXSPEED, Math.min(MAXSPEED, player.vx));
+      player.vy += GRAV;
+
+      // horizontal movement & collisions
+      player.x += player.vx;
+      for(const p of platforms){ if(rect(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)){
+        if(player.vx > 0) player.x = p.x - player.w; else player.x = p.x + p.w; player.vx *= 0.2;
+      }}
+
+      // vertical
+      player.y += player.vy; player.onGround=false;
+      for(const p of platforms){ if(rect(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)){
+        if(player.vy > 0){ player.y = p.y - player.h; player.vy = 0; player.onGround = true; }
+        else { player.y = p.y + p.h; player.vy = 0; }
+      }}
+
+      if(up && player.onGround){ player.vy = -JUMP; player.onGround=false; playTone(540,0.06,'square',0.07); tryVibrate([12,30]); }
+
+      if(player.onGround) player.vx *= 0.88; else player.vx *= 0.995;
+
+      // bounds
+      player.x = Math.max(0, Math.min(worldWidth - player.w, player.x));
+      player.y = Math.min(360 - player.h, player.y);
+
+      // collect
+      for(const h of hearts){ if(!h.taken){ const dx = (player.x + player.w/2) - h.x; const dy = (player.y + player.h/2) - h.y; if(dx*dx + dy*dy < (h.r+12)*(h.r+12)){ h.taken=true; playTone(980,0.12,'sine',0.08); announce('Coração coletado'); } }}
+      const collected = hearts.filter(h=>h.taken).length; document.getElementById('count').textContent = collected;
+
+      const all = collected === hearts.length;
+      if(all && rect(player.x, player.y, player.w, player.h, flag.x, flag.y - flag.h, flag.w, flag.h + 20)){
+        showWin();
+      }
+
+      player.anim += 0.2; if(player.anim>10000) player.anim=0;
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.save(); ctx.scale(gameScale,gameScale);
+      // bg
+      const g = ctx.createLinearGradient(0,0,0,360); g.addColorStop(0,'#0b0720'); g.addColorStop(1,'#12072a'); ctx.fillStyle = g; ctx.fillRect(0,0,960,360);
+
+      // camera
+      const camX = Math.max(0, Math.min(player.x - 200, worldWidth - 960));
+      ctx.translate(-camX,0);
+
+      // parallax stars
+      for(let i=0;i<60;i++){ ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fillRect((i*37)%worldWidth, 20 + (i%7)*10, 2,2); }
+
+      // platforms
+      for(const p of platforms){ ctx.fillStyle='#22183a'; ctx.fillRect(p.x,p.y,p.w,p.h); ctx.fillStyle='#2f2450'; ctx.fillRect(p.x,p.y,p.w,6); }
+
+      // hearts
+      const t = performance.now()/300;
+      for(const h of hearts){ if(h.taken) continue; const yy = h.y + Math.sin(t + h.x*0.01)*6; drawHeart(h.x,yy,h.r); }
+
+      // flag
+      drawFlag(flag.x,flag.y,flag.w,flag.h);
+
+      // player
+      drawPlayer(player);
+
+      ctx.restore();
+    }
+
+    function drawHeart(x,y,r){ ctx.save(); ctx.translate(x,y); ctx.fillStyle='#ff6b93'; ctx.beginPath(); ctx.moveTo(0,r); ctx.bezierCurveTo(r, r*1.7, r*2, r*0.6, 0, -r*0.25); ctx.bezierCurveTo(-r*2, r*0.6, -r, r*1.7, 0, r); ctx.fill(); ctx.restore(); }
+    function drawFlag(x,y,w,h){ ctx.save(); ctx.fillStyle='#ffeeff'; ctx.fillRect(x, y-h, 6, h); ctx.fillStyle='#c0399b'; ctx.beginPath(); ctx.moveTo(x+6, y-h+12); ctx.lineTo(x+46, y-h+28); ctx.lineTo(x+6, y-h+44); ctx.closePath(); ctx.fill(); ctx.restore(); }
+    function drawPlayer(p){ ctx.save(); ctx.translate(p.x + p.w/2, p.y + p.h/2); ctx.fillStyle = '#fff2f7'; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); ctx.fillStyle='#ffccde'; ctx.fillRect(-p.w/2, -p.h/2 - 14, p.w, 14); ctx.fillStyle='#1a1a1f'; ctx.fillRect(-6, -p.h/2 -10, 4,4); ctx.fillRect(2, -p.h/2 -10, 4,4); ctx.fillStyle='#ff6b93'; ctx.beginPath(); ctx.arc(-2, -6, 3,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+
+    let raf=null;
+    function loop(){ if(paused) return; update(); draw(); raf = requestAnimationFrame(loop); }
+
+    function resetGame(){ cancelAnimationFrame(raf); player.x=40; player.y=260; player.vx=0; player.vy=0; hearts.forEach(h=>h.taken=false); document.getElementById('count').textContent = 0; document.getElementById('winModal').classList.remove('active'); paused=false; pauseBtn.textContent='⏸️ Pausar'; loop(); }
+
+    document.getElementById('resetBtn').addEventListener('click', resetGame);
+    resetGame();
+
+    // ---------------- Win modal + special ending ----------------
+    const winModal = document.getElementById('winModal');
+    const typeEl = document.getElementById('typeMsg');
+    function showWin(){
+      winModal.classList.add('active');
+      playTone(660,0.25,'sine',0.12);
+      typeWriter('Eu te amo. Obrigado por ser meu coração todos os dias. 💖', typeEl, 32);
+      announce('Você ganhou!');
+      confettiHearts();
+    }
+    document.getElementById('closeWin').addEventListener('click', ()=>{ winModal.classList.remove('active'); resetGame(); });
+
+    // speech & confetti
+    document.getElementById('sayLove').addEventListener('click', ()=>{ speakLove(); });
+    function speakLove(){ try{ const text = 'Eu te amo'; const msg = new SpeechSynthesisUtterance(text); const preferred = speechSynthesis.getVoices().find(v=> v.lang && v.lang.startsWith('pt')); if(preferred) msg.voice = preferred; msg.rate=0.92; msg.pitch=1.05; speechSynthesis.cancel(); speechSynthesis.speak(msg); }catch(e){} }
+
+    function typeWriter(text, el, speed=24){ el.textContent=''; let i=0; const id=setInterval(()=>{ el.textContent += text[i++]||''; if(i>=text.length) clearInterval(id); }, speed); }
+
+    function confettiHearts(){ const wrap = document.getElementById('hearts'); for(let i=0;i<30;i++){ const el = document.createElement('div'); el.className='heart'; el.textContent = ['❤','💖','💗','💘','💝'][i%5]; el.style.left = (10 + Math.random()*80) + 'vw'; el.style.fontSize = (14 + Math.random()*22) + 'px'; el.style.animationDuration = (4 + Math.random()*6) + 's'; el.style.top = '75vh'; wrap.appendChild(el); setTimeout(()=> el.remove(), 7000); } }
+
+    // vibrate
+    function tryVibrate(p){ if('vibrate' in navigator){ try{ navigator.vibrate(p); }catch(e){} } }
+
+    // ---------------- small helpers ----------------
+    // ensure audio context created on first user gesture for sound effects
+    ['click','keydown','touchstart'].forEach(ev=> addEventListener(ev, ()=>{ ensureAudioCtx(); }, {once:true}));
+
+  </script><input type="file" accept="image/*" style="display: none;"><input type="file" accept="image/*" style="display: none;">
+
+
+</body></html>
